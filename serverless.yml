@@ -1,0 +1,58 @@
+service: pets
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+  environment:
+    PETS_TABLE: pets-${opt:stage, self:provider.stage}
+    
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.PETS_TABLE}"
+
+  # stage: dev
+  # region: us-east-1
+
+functions:
+  get-all:
+    handler: src/controllers/get-all.handler
+    events:
+      - http:
+          path: /pets
+          method: get
+
+  get-by-id:
+    handler: src/controllers/get-by-id.handler
+    events:
+      - http:
+          path: /pets/{id}
+          method: get
+
+  create:
+    handler: src/controllers/post.handler
+    events:
+      - http:
+          path: /pets
+          method: post
+
+  delete:
+    handler: src/controllers/delete.handler
+    events:
+      - http:
+          path: /pets/{id}
+          method: delete
+
+  update:
+    handler: src/controllers/put.handler
+    events:
+      - http:
+          path: /pets/{id}
+          method: put
